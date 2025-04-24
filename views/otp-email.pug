@@ -5,69 +5,157 @@ html(lang="en")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title OYE - Email Verification
     style.
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+      
+      :root {
+        --primary: #6366F1;
+        --primary-dark: #4F46E5;
+        --secondary: #2DD4BF;
+        --text-dark: #1E293B;
+        --text-light: #64748B;
+        --bg-light: #F8FAFC;
+        --bg-accent: #F0F9FF;
+        --border-light: #E2E8F0;
+      }
+      
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Poppins', sans-serif;
         line-height: 1.6;
-        color: #333;
+        color: var(--text-dark);
         margin: 0;
         padding: 0;
-        background-color: #f9f9f9;
+        background-color: var(--bg-light);
       }
+      
       .container {
         max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
+        margin: 20px auto;
         background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       }
+      
       .header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        padding: 30px 0;
         text-align: center;
-        padding: 20px 0;
-        border-bottom: 2px solid #f0f0f0;
+        position: relative;
       }
+      
+      .header::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        opacity: 0.6;
+      }
+      
       .logo {
-        font-size: 24px;
-        font-weight: bold;
-        color: #4a54f1;
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+        letter-spacing: 2px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
+      
       .content {
-        padding: 30px 20px;
+        padding: 40px 30px;
         text-align: center;
+        background-color: white;
       }
+      
+      h2 {
+        color: var(--primary-dark);
+        font-weight: 600;
+        margin-top: 0;
+        font-size: 24px;
+      }
+      
+      p {
+        color: var(--text-light);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+      
       .otp-container {
-        margin: 25px 0;
-        padding: 15px;
-        background-color: #f5f7ff;
-        border-radius: 6px;
-        border: 1px solid #e1e4f5;
+        margin: 30px auto;
+        padding: 25px 20px;
+        background-color: var(--bg-accent);
+        border-radius: 12px;
+        max-width: 300px;
+        position: relative;
+        border-left: 4px solid var(--secondary);
       }
+      
       .otp {
-        font-size: 36px;
-        font-weight: bold;
-        letter-spacing: 5px;
-        color: #4a54f1;
+        font-size: 42px;
+        font-weight: 700;
+        letter-spacing: 8px;
+        color: var(--primary);
         margin: 10px 0;
+        text-shadow: 0 1px 2px rgba(99, 102, 241, 0.2);
       }
+      
       .expiry {
-        font-size: 14px;
-        color: #777;
-        margin-top: 10px;
+        font-size: 13px;
+        color: var(--text-light);
+        margin-top: 15px;
+        font-weight: 500;
+        display: inline-block;
+        padding: 5px 15px;
+        background-color: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
       }
-      .footer {
-        text-align: center;
-        padding-top: 20px;
-        border-top: 1px solid #f0f0f0;
-        font-size: 12px;
-        color: #999;
-      }
+      
       .note {
         font-size: 14px;
-        color: #666;
-        margin-top: 20px;
-        padding: 10px;
-        background-color: #fff9e6;
-        border-radius: 6px;
+        color: var(--text-light);
+        margin: 35px auto 10px;
+        padding: 15px;
+        background-color: var(--bg-light);
+        border-radius: 10px;
+        max-width: 80%;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--border-light);
+      }
+      
+      .footer {
+        text-align: center;
+        padding: 25px 20px;
+        background-color: #FFFFFF;
+        border-top: 1px solid var(--border-light);
+        font-size: 12px;
+        color: var(--text-light);
+      }
+      
+      .social-links {
+        margin: 15px 0;
+      }
+      
+      .social-links a {
+        display: inline-block;
+        margin: 0 8px;
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .accent-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: var(--secondary);
+        border-radius: 50%;
+        margin-bottom: 1px;
+        margin-right: 3px;
       }
   body
     .container
@@ -75,16 +163,22 @@ html(lang="en")
         .logo OYE
       .content
         h2 Verify Your Email Address
-        p Thank you for registering with OYE. Please use the following One-Time Password (OTP) to complete your verification:
+        p We're excited to have you join OYE! To ensure the security of your account, please verify your email using the following verification code:
         
         .otp-container
           .otp #{otp}
         
-        p.expiry This OTP will expire in #{expiryMinutes} minutes.
+        p.expiry 
+          span.accent-dot
+          | Expires in #{expiryMinutes} minutes
         
         .note
-          | If you didn't request this verification, please ignore this email or contact our support team.
+          | If you didn't request this verification code, please disregard this email or contact our support team immediately for assistance.
       
       .footer
-        p © #{new Date().getFullYear()} OYE Team. All rights reserved.
-        p This is an automated message, please do not reply to this email.
+        p © #{new Date().getFullYear()} OYE. All rights reserved.
+        .social-links
+          a(href="#") Twitter
+          a(href="#") Instagram
+          a(href="#") LinkedIn
+        p This is an automated message. Please do not reply to this email.
