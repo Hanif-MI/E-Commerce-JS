@@ -5,7 +5,6 @@ import {
   productValidation,
   updateProductValidation,
 } from "../validatons/product.validation.js";
-import { where } from "sequelize";
 
 /**
  * This function is responsible for the creating product.
