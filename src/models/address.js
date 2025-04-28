@@ -4,7 +4,11 @@ import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Address extends Model {
     static associate(models) {
-      // define association here
+      // Define the association with the User model
+      Address.belongsTo(models.User, {
+        foreignKey: "userId",
+        as: "user",
+      });
     }
   }
   Address.init(

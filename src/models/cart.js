@@ -31,11 +31,6 @@ const defineProductModel = (sequelize, DataTypes) => {
         },
         allowNull: false,
       },
-      status: {
-        type: DataTypes.ENUM("pending", "completed", "cancelled", "inprogress"),
-        defaultValue: "pending",
-        allowNull: false,
-      },
     },
     {
       sequelize,

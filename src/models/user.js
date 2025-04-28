@@ -2,8 +2,11 @@ import { Model } from "sequelize";
 
 const defineUserModel = (sequelize, DataTypes) => {
   class User extends Model {
-    static associations(models) {
-      // define association here
+    static associate(models) {
+      User.hasMany(models.Address, {
+        foreignKey: "userId",
+        as: "address",
+      });
     }
   }
 

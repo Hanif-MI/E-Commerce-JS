@@ -105,11 +105,18 @@ const signIn = async (req, res) => {
     const UserModel = Models.User;
     signInValidation(req, res, async (isValidate) => {
       if (!isValidate)
-        errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Validation failed");
+        return errorResponseData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          "Validation failed"
+        );
 
       const { email, password } = req.body;
-      console.log("!@#", email);
-      const user = await UserModel.findOne({ where: { email } });
+
+      const user = await UserModel.findOne({
+        where: { email },
+        include: [{ model: Models.Address, as: "address" }],
+      });
 
       if (!user)
         return errorResponseWithoutData(
@@ -122,7 +129,7 @@ const signIn = async (req, res) => {
         return errorResponseWithoutData(
           res,
           RESPONSE_CODE.UNAUTHORIZED,
-          "User is not verify please verify the email first."
+          "User is not verified. Please verify the email first."
         );
       }
 
@@ -131,12 +138,13 @@ const signIn = async (req, res) => {
         return errorResponseWithoutData(
           res,
           RESPONSE_CODE.FORBIDDEN,
-          "Please enter the valid password."
+          "Please enter a valid password."
         );
       }
 
       const token = generateToken(user.id);
-
+      const hisShip = await user.getAddress();
+      console.log( hisShip);
       return successResponseData(
         res,
         {
@@ -146,6 +154,7 @@ const signIn = async (req, res) => {
           phone: user.phone,
           is_verified: user.is_verified,
           wallet_balance: user.wallet_balance,
+          addresses:hisShip,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           token: token,
@@ -158,7 +167,7 @@ const signIn = async (req, res) => {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      `Error while signin ${error}`
+      `Error while signing in: ${error.message}`
     );
   }
 };
