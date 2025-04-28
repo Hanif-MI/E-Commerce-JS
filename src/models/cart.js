@@ -1,7 +1,15 @@
 import { Model } from "sequelize";
 
 const defineProductModel = (sequelize, DataTypes) => {
-  class Cart extends Model {}
+  class Cart extends Model {
+    static associate(models) {
+      // Define the association with the User model
+      Cart.belongsTo(models.Product, {
+        foreignKey: "product_id",
+        as: "product",
+      });
+    }
+  }
 
   Cart.init(
     {
@@ -21,7 +29,7 @@ const defineProductModel = (sequelize, DataTypes) => {
       },
       quantity: {
         type: DataTypes.INTEGER,
-        defaultValue: 1, 
+        defaultValue: 1,
       },
       user_id: {
         type: DataTypes.INTEGER,

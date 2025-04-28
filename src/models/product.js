@@ -1,8 +1,15 @@
 import { Model } from "sequelize";
 
 const defineProductModel = (sequelize, DataTypes) => {
-  class Product extends Model {}
-  
+  class Product extends Model {
+    static associate(models) {
+      Product.hasMany(models.Cart, {
+        foreignKey: "product_id",
+        as: "cart",
+      });
+    }
+  }
+
   Product.init(
     {
       id: {
@@ -51,7 +58,7 @@ const defineProductModel = (sequelize, DataTypes) => {
   //     as: "category",
   //   });
   // };
-  
+
   return Product;
 };
 

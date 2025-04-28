@@ -4,8 +4,6 @@ import {
 } from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import Models from "../models/index.js";
-import { updateCartValidation } from "../validatons/cart.validation.js";
-import { where } from "sequelize";
 
 const addToCart = async (req, res) => {
   /**
@@ -67,57 +65,6 @@ const addToCart = async (req, res) => {
   }
 };
 
-const updateCartStatus = async (req, res) => {
-  /**
-   * Steps for update the status of cart product.
-   * 1. validate the request body.
-   * 2. Check for the product exists
-   * 3. Update the status in database
-   * 4. send response
-   * 5. handle error
-   * 6. test endpoint
-   */
-  try {
-    return updateCartValidation(req, res, async (isValid) => {
-      if (!isValid)
-        errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Validation failed");
-
-      const { id, status } = req.body;
-      const model = Models.Cart;
-
-      const product = await model.findOne({ where: { id } });
-      if (!product) {
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          "Card product is not found!"
-        );
-      }
-
-      if (status === product.status) {
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          "Already have the updated status"
-        );
-      }
-      const updatedProduct = await model.update({ status }, { where: { id } });
-      return successResponseData(
-        res,
-        updatedProduct,
-        RESPONSE_CODE.SUCCESS_NEW_RESOURCE,
-        "Product status update successfully."
-      );
-    });
-  } catch (error) {
-    errorResponseWithoutData(
-      res,
-      RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while adding product into cart. " + error
-    );
-  }
-};
-
 const getUserCart = async (req, res) => {
   /**
    * Steps for user cart.
@@ -140,4 +87,4 @@ const getUserCart = async (req, res) => {
   }
 };
 
-export { addToCart, updateCartStatus, getUserCart };
+export { addToCart, getUserCart };
