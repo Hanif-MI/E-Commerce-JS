@@ -13,8 +13,9 @@ import {
 } from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import { sendOTPEmail } from "../services/mail.service.js";
-import { where } from "sequelize";
 import { generateToken } from "../utility/helper.js";
+import { checkIfUserExists, createUser } from "../services/auth.service.js";
+import { errorMessages, successMessages } from "../utility/messages.js";
 
 /**
  * This function is responsible for the creating new user,
@@ -33,18 +34,17 @@ const signUp = async (req, res) => {
    */
 
   try {
-    const UserModel = Models.User;
-
     return signUpValidation(req, res, async (isValid) => {
       if (!isValid)
-        errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Validation failed");
+        return errorResponseData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          "Validation failed"
+        );
 
       const { username, email, phone, password } = req.body;
 
-      const existingUser = await UserModel.findOne({
-        where: { email },
-        // paranoid: false,
-      });
+      const existingUser = await checkIfUserExists(email);
 
       if (existingUser) {
         return errorResponseData(
@@ -55,7 +55,7 @@ const signUp = async (req, res) => {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const newUser = await UserModel.create({
+      const newUser = await createUser({
         username,
         email,
         phone,
@@ -75,14 +75,14 @@ const signUp = async (req, res) => {
           updatedAt: newUser.updatedAt,
         },
         RESPONSE_CODE.SUCCESS,
-        "User created successfully"
+        successMessages.USER_CREATE_SUCCESS
       );
     });
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error creating user"
+      errorMessages.ERROR_SIGNUP + error.message
     );
   }
 };
@@ -125,14 +125,14 @@ const signIn = async (req, res) => {
         return errorResponseWithoutData(
           res,
           RESPONSE_CODE.NOT_FOUND,
-          "User not found!."
+          errorMessages.USER_NOT_FOUND
         );
 
       if (!user.is_verified) {
         return errorResponseWithoutData(
           res,
           RESPONSE_CODE.UNAUTHORIZED,
-          "User is not verified. Please verify the email first."
+          errorMessages.USER_NOT_VERIFIED
         );
       }
 
@@ -141,7 +141,7 @@ const signIn = async (req, res) => {
         return errorResponseWithoutData(
           res,
           RESPONSE_CODE.FORBIDDEN,
-          "Please enter a valid password."
+          errorMessages.ENTER_VALID_PASSWORD
         );
       }
 
@@ -162,14 +162,14 @@ const signIn = async (req, res) => {
           token: token,
         },
         RESPONSE_CODE.SUCCESS,
-        "User signin successful."
+        successMessages.SIGNIN_SUCCESS
       );
     });
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      `Error while signing in: ${error.message}`
+      errorMessages.ERROR_SIGNIN + error.message
     );
   }
 };
@@ -193,25 +193,27 @@ const sendOTP = async (req, res) => {
 
   try {
     const { email } = req.body;
-    const UserModel = Models.User;
 
-    const user = await UserModel.findOne({ where: { email } });
+    const user = await checkIfUserExists(email);
     if (!user) {
       return errorResponseData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "User not found"
+        errorMessages.USER_NOT_FOUND
       );
     }
     await sendOTPEmail(user.email, user.id);
-    successResponseData(
+    successResponseWithoutData(
       res,
-      {},
       RESPONSE_CODE.SUCCESS,
-      "OTP sent successfully"
+      successMessages.OTP_SENT_SUCCESS
     );
   } catch (error) {
-    errorResponseData(res, RESPONSE_CODE.INTERNAL_SERVER, "Error sending OTP");
+    errorResponseData(
+      res,
+      RESPONSE_CODE.INTERNAL_SERVER,
+      errorMessages.ERROR_OTP + error.message
+    );
   }
 };
 
@@ -233,35 +235,37 @@ const verifyOTP = async (req, res) => {
 
   try {
     const { email, otp } = req.body;
-    const UserModel = Models.User;
 
-    const user = await UserModel.findOne({ where: { email } });
+    const user = await checkIfUserExists(email);
     if (!user) {
       return errorResponseData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "User not found"
+        errorMessages.USER_NOT_FOUND
       );
     }
 
     if (user.otp !== otp) {
-      return errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Invalid OTP");
+      return errorResponseData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.INVALID_OTP
+      );
     }
 
     user.is_verified = true;
     user.otp = null;
     await user.save();
-    successResponseData(
+    successResponseWithoutData(
       res,
-      {},
       RESPONSE_CODE.SUCCESS,
-      "OTP verified successfully"
+      successMessages.OTP_SENT_SUCCESS
     );
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error verifying OTP"
+      errorMessages.ERROR_VERIFY_OTP + error.message
     );
   }
 };
@@ -282,7 +286,6 @@ const forgetPassword = (req, res) => {
    * 6. Test the endpoint
    */
   try {
-    const userModel = Models.User;
     return emailValidation(req, res, async (isValid) => {
       if (!isValid)
         return errorResponseWithoutData(
@@ -293,22 +296,28 @@ const forgetPassword = (req, res) => {
 
       const { email } = req.body;
 
-      const user = await userModel.findOne({ where: { email } });
+      const user = await checkIfUserExists(email);
       if (!user)
         return errorResponseWithoutData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "User not found please check you email."
+          errorMessages.USER_NOT_FOUND
         );
       await sendOTPEmail(user.email, user.id, true);
       successResponseData(
         res,
         {},
         RESPONSE_CODE.SUCCESS,
-        "Forget password successful. please check you mail box for the OTP."
+        successMessages.FORGET_PASSWORD_SUCCESS
       );
     });
-  } catch (error) {}
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.INTERNAL_SERVER,
+      errorMessages.ERROR_FORGET_PASSWORD
+    );
+  }
 };
 
 /**
@@ -330,12 +339,16 @@ const deleteMyAccount = async (req, res) => {
         id: req.user.id,
       },
     });
-    successResponseWithoutData(res, 201, "Account Delete Successful");
+    successResponseWithoutData(
+      res,
+      201,
+      successMessages.ACCOUNT_DELETE_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while deleting account" + error
+      errorMessages.ERROR_DELETE_ACCOUNT + error
     );
   }
 };
