@@ -4,7 +4,11 @@ import {
   makeAddressDefaultValidation,
   updateAddressValidation,
 } from "../validatons/address.validation.js";
-import { errorResponseData, successResponseData } from "../utility/response.js";
+import {
+  errorResponseData,
+  successResponseData,
+  successResponseWithoutData,
+} from "../utility/response.js";
 import { where } from "sequelize";
 import { RESPONSE_CODE } from "../utility/constant.js";
 
@@ -58,6 +62,53 @@ const createAddress = (req, res) => {
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
       "Error while creating category"
+    );
+  }
+};
+
+const deleteAddress = async (req, res) => {
+  /**
+   * Steps to delete the address.
+   * 1. Validate the request body.
+   * 2. Check the entry in the database.
+   * 3. Delete from database.
+   * 4. Send response.
+   * 5. Handle errors.
+   * 6. Test the endpoint.
+   */
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return errorResponseData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        "Please enter the id."
+      );
+    }
+
+    const model = Models.Address;
+    const address = await model.findOne({ where: { id } });
+    if (!address) {
+      return errorResponseData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        "address not found"
+      );
+    }
+
+    await model.destroy({ where: { id } });
+
+    successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      "delete address successfully"
+    );
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.INTERNAL_SERVER,
+      "Error while deleting address"
     );
   }
 };
@@ -262,4 +313,10 @@ const makeAddressDefault = (req, res) => {
   }
 };
 
-export { createAddress, updateAddress, getAddressByID, makeAddressDefault };
+export {
+  createAddress,
+  updateAddress,
+  getAddressByID,
+  makeAddressDefault,
+  deleteAddress,
+};
