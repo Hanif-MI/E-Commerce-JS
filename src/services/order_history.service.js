@@ -21,11 +21,12 @@ const validateId = (id) => {
  * 5. Handle error.
  * 6, Test endpoint.
  */
-const addOrderService = async (user_id) => {
+const addOrderService = async (user_id, wallet_balance) => {
   validateId(user_id);
   const cartModel = Models.Cart;
   const orderItemsModel = Models.order_items;
   const orderHistoryModel = Models.order_history;
+  const userModel = Models.User;
   const transaction = await Models.sequelize.transaction();
 
   const cart = await cartModel.findAll({
@@ -43,12 +44,33 @@ const addOrderService = async (user_id) => {
       { transaction }
     );
 
-    const orderItems = cart.map((item) => ({
-      order_id: orderHistory.id,
-      product_id: item.product.id,
-      product_name: item.product.name,
-      product_price: item.product.price,
-    }));
+    let totalAmount = 0;
+    const orderItems = cart.map((item) => {
+      totalAmount += Number(item.product.price);
+      return {
+        order_id: orderHistory.id,
+        product_id: item.product.id,
+        product_name: item.product.name,
+        product_price: item.product.price,
+      };
+    });
+    
+    if (totalAmount > wallet_balance) {
+      throw new ApiError(
+        RESPONSE_CODE.FORBIDDEN,
+        `you don't have enough balance!. your balance is ${wallet_balance} and your cart total is ${totalAmount}`
+      );
+    }
+
+    await userModel.update(
+      { wallet_balance: wallet_balance - totalAmount },
+      {
+        where: {
+          id: user_id,
+        },
+        transaction,
+      }
+    );  
 
     await orderItemsModel.bulkCreate(orderItems, { transaction });
     await cartModel.destroy({ where: { user_id }, transaction });

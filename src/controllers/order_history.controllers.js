@@ -7,7 +7,7 @@ import { updateCartValidation } from "../validatons/order.validation.js";
 
 const addOrder = async (req, res, next) => {
   try {
-    const createdOrder = await addOrderService(req.user.id);
+    const createdOrder = await addOrderService(req.user.id,req.user.wallet_balance);
     res.send(createdOrder);
   } catch (error) {
     next(error);
