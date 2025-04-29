@@ -2,6 +2,7 @@ import { createCategoryValidation } from "../validatons/category.validation.js";
 import Models from "../models/index.js";
 import { errorResponseData, successResponseData } from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
+import { errorMessages, successMessages } from "../utility/messages.js";
 
 const createCategory = async (req, res) => {
   /**
@@ -17,35 +18,36 @@ const createCategory = async (req, res) => {
     const model = Models.Category;
     createCategoryValidation(req, res, async (isValidate) => {
       if (!isValidate)
-        errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Validation failed");
+        errorResponseData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          errorMessages.VALIDATION_ERROR
+        );
 
       const { name } = req.body;
-      console.log(name, "!@#");
       const isCategoryExists = await model.findOne({ where: { name } });
       if (isCategoryExists) {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Category already exists"
+          errorMessages.CATEGORY_ALREADY_EXISTS
         );
       }
 
-      const newCategory = await model.create({
-        name,
-      });
+      const newCategory = await model.create({ name });
 
       successResponseData(
         res,
         newCategory,
         RESPONSE_CODE.SUCCESS,
-        "User created successfully"
+        successMessages.CATEGORY_CREATE_SUCCESS
       );
     });
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while creating category"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -62,17 +64,12 @@ const getAllCategories = async (req, res) => {
   try {
     const model = Models.Category;
     const categories = await model.findAll();
-    successResponseData(
-      res,
-      categories,
-      RESPONSE_CODE.SUCCESS,
-      "User created successfully"
-    );
+    successResponseData(res, categories, RESPONSE_CODE.SUCCESS, "");
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while getting all the categories"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };

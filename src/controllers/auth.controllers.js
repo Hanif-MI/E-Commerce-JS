@@ -39,7 +39,7 @@ const signUp = async (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Validation failed"
+          errorMessages.VALIDATION_ERROR
         );
 
       const { username, email, phone, password } = req.body;
@@ -111,7 +111,7 @@ const signIn = async (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Validation failed"
+          errorMessages.VALIDATION_ERROR
         );
 
       const { email, password } = req.body;
@@ -291,7 +291,7 @@ const forgetPassword = (req, res) => {
         return errorResponseWithoutData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Validation failed"
+          errorMessages.VALIDATION_ERROR
         );
 
       const { email } = req.body;

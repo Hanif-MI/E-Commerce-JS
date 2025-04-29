@@ -6,5 +6,5 @@ import {
 
 export const categoryRoute = express.Router();
 
-categoryRoute.use("/create-category", createCategory);
-categoryRoute.use("/categories", getAllCategories);
+categoryRoute.post("/create-category", createCategory);
+categoryRoute.get("/categories", getAllCategories);
