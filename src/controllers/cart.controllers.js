@@ -1,6 +1,7 @@
 import {
   errorResponseWithoutData,
   successResponseData,
+  successResponseWithoutData,
 } from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import Models from "../models/index.js";
@@ -87,4 +88,50 @@ const getUserCart = async (req, res) => {
   }
 };
 
-export { addToCart, getUserCart };
+const removeProductFromCart = async (req, res) => {
+  /**
+   * Steps for remove the item from the cart.
+   *  1. Validate the request body.
+   *  2. Check for product exists in cart.
+   *  3. update in database.
+   *  4. send response
+   *  5. handle errors
+   *  6. test endpoint
+   */
+
+  try {
+    const { id } = req.body;
+    if (!id)
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        "Please enter valid cart Id"
+      );
+
+    const model = Models.Cart;
+
+    const p = await model.findOne({ where: { id } });
+
+    if (!p)
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.FORBIDDEN,
+        "Cart product not found"
+      );
+
+    await model.destroy({ where: { id } });
+    return successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS_NEW_RESOURCE,
+      "Product remove from cart!"
+    );
+  } catch (error) {
+    errorResponseWithoutData(
+      res,
+      RESPONSE_CODE.INTERNAL_SERVER,
+      "Error while remove product from cart. " + error
+    );
+  }
+};
+
+export { addToCart, getUserCart, removeProductFromCart };
