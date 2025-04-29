@@ -3,11 +3,11 @@
 /** @type {import('sequelize-cli').Migration} */
 
 const seedData = [
-  { name: "electronics", created_at: new Date() },
-  { name: "Wood", created_at: new Date() },
-  { name: "cloth", created_at: new Date() },
-  { name: "beauty", created_at: new Date() },
-  { name: "mobile", created_at: new Date() },
+  { name: "electronics", created_at: new Date(),updated_at: new Date() },
+  { name: "Wood", created_at: new Date(),updated_at: new Date() },
+  { name: "cloth", created_at: new Date(),updated_at: new Date() },
+  { name: "beauty", created_at: new Date(),updated_at: new Date() },
+  { name: "mobile", created_at: new Date(),updated_at: new Date() },
 ];
 
 const up = async (queryInterface, Sequelize) => {

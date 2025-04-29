@@ -25,7 +25,6 @@ const defineUserModel = (sequelize, DataTypes) => {
       email: {
         type: DataTypes.STRING(256),
         allowNull: false,
-        unique: true,
       },
       phone: {
         type: DataTypes.STRING(256),

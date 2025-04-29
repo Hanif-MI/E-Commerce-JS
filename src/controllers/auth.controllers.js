@@ -7,9 +7,9 @@ import Models from "../models/index.js";
 import bcrypt from "bcrypt";
 import {
   errorResponseData,
-  errorResponseWithData,
   errorResponseWithoutData,
   successResponseData,
+  successResponseWithoutData,
 } from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import { sendOTPEmail } from "../services/mail.service.js";
@@ -41,10 +41,13 @@ const signUp = async (req, res) => {
 
       const { username, email, phone, password } = req.body;
 
-      const existingUser = await UserModel.findOne({ where: { email } });
+      const existingUser = await UserModel.findOne({
+        where: { email },
+        // paranoid: false,
+      });
 
       if (existingUser) {
-        errorResponseData(
+        return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
           "User already exists"
@@ -143,8 +146,7 @@ const signIn = async (req, res) => {
       }
 
       const token = generateToken(user.id);
-      const hisShip = await user.getAddress();
-      console.log( hisShip);
+      const address = await user.getAddress();
       return successResponseData(
         res,
         {
@@ -154,7 +156,7 @@ const signIn = async (req, res) => {
           phone: user.phone,
           is_verified: user.is_verified,
           wallet_balance: user.wallet_balance,
-          addresses:hisShip,
+          addresses: address,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           token: token,
@@ -309,4 +311,33 @@ const forgetPassword = (req, res) => {
   } catch (error) {}
 };
 
-export { signUp, signIn, sendOTP, verifyOTP, forgetPassword };
+/**
+ * This function is responsible deleting the account
+ */
+const deleteMyAccount = async (req, res) => {
+  /**
+   * Steps to delete the account.
+   * 1. check user is exists in database.
+   * 2. soft delete and return the response.
+   * 3. Handle errors
+   * 4. Test the endpoint
+   */
+
+  try {
+    const model = Models.User;
+    await model.destroy({
+      where: {
+        id: req.user.id,
+      },
+    });
+    successResponseWithoutData(res, 201, "Account Delete Successful");
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.INTERNAL_SERVER,
+      "Error while deleting account" + error
+    );
+  }
+};
+
+export { signUp, signIn, sendOTP, verifyOTP, forgetPassword, deleteMyAccount };
