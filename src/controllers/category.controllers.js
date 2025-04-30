@@ -1,14 +1,11 @@
-import { createCategoryValidation } from "../validation/category.validation.js";
 import Models from "../models/index.js";
 import {
   errorResponseData,
-  errorResponseWithoutData,
   successResponseData,
   successResponseWithoutData,
 } from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import { errorMessages, successMessages } from "../utility/messages.js";
-import { idValidation } from "../validation/common.validation.js";
 
 const createCategory = async (req, res) => {
   /**
@@ -22,33 +19,24 @@ const createCategory = async (req, res) => {
    */
   try {
     const model = Models.Category;
-    createCategoryValidation(req, res, async (isValidate) => {
-      if (!isValidate)
-        errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.VALIDATION_ERROR
-        );
-
-      const { name } = req.body;
-      const isCategoryExists = await model.findOne({ where: { name } });
-      if (isCategoryExists) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.CATEGORY_ALREADY_EXISTS
-        );
-      }
-
-      const newCategory = await model.create({ name });
-
-      successResponseData(
+    const { name } = req.body;
+    const isCategoryExists = await model.findOne({ where: { name } });
+    if (isCategoryExists) {
+      return errorResponseData(
         res,
-        newCategory,
-        RESPONSE_CODE.SUCCESS,
-        successMessages.CATEGORY_CREATE_SUCCESS
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.CATEGORY_ALREADY_EXISTS
       );
-    });
+    }
+
+    const newCategory = await model.create({ name });
+
+    successResponseData(
+      res,
+      newCategory,
+      RESPONSE_CODE.SUCCESS,
+      successMessages.CATEGORY_CREATE_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,
@@ -92,37 +80,28 @@ const deleteCategory = async (req, res) => {
    */
 
   try {
-    return idValidation(req, res, async (isValid) => {
-      if (!isValid) {
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.NOT_FOUND,
-          errorMessages.VALIDATION_ERROR
-        );
-      }
-      const { id } = req.body;
+    const { id } = req.body;
 
-      const model = Models.Category;
-      const category = await model.findOne({ where: { id } });
-      if (!category) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.CATEGORY_NOT_FOUND
-        );
-      }
-      await model.destroy({ where: { id } });
-      return successResponseWithoutData(
+    const model = Models.Category;
+    const category = await model.findOne({ where: { id } });
+    if (!category) {
+      return errorResponseData(
         res,
-        RESPONSE_CODE.SUCCESS_WITHOUT_RESPONSE,
-        successMessages.CATEGORY_DELETE_SUCCESS
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.CATEGORY_NOT_FOUND
       );
-    });
+    }
+    await model.destroy({ where: { id } });
+    return successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS_WITHOUT_RESPONSE,
+      successMessages.CATEGORY_DELETE_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      errorMessages.INTERNAL_SERVER_ERROR 
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };

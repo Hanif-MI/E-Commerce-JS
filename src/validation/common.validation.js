@@ -1,14 +1,15 @@
 import Joi from "joi";
-import { errorResponseData } from "../utility/response.js";
-import { RESPONSE_CODE } from "../utility/constant.js";
 
-const idValidation = (req, res, callback) => {
-  const schema = Joi.object({
-    id: Joi.required(),
-  });
-  const { error } = schema.validate(req.body);
-  if (error) return errorResponseData(res, RESPONSE_CODE.FORBIDDEN, error.message);
-  return callback(true);
-};
+const idSchema = Joi.object({
+  id: Joi.required(),
+});
 
-export { idValidation };
+const emailSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const nameSchema = Joi.object({
+  name: Joi.string().required(),
+});
+
+export { idSchema, emailSchema, nameSchema };

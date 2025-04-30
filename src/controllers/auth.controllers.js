@@ -1,8 +1,3 @@
-import {
-  emailValidation,
-  signInValidation,
-  signUpValidation,
-} from "../validation/auth.validation.js";
 import Models from "../models/index.js";
 import bcrypt from "bcrypt";
 import {
@@ -34,50 +29,41 @@ const signUp = async (req, res) => {
    */
 
   try {
-    return signUpValidation(req, res, async (isValid) => {
-      if (!isValid)
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.VALIDATION_ERROR
-        );
+    const { username, email, phone, password } = req.body;
 
-      const { username, email, phone, password } = req.body;
+    const existingUser = await checkIfUserExists(email);
 
-      const existingUser = await checkIfUserExists(email);
-
-      if (existingUser) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          "User already exists"
-        );
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const newUser = await createUser({
-        username,
-        email,
-        phone,
-        password: hashedPassword,
-      });
-      await sendOTPEmail(newUser.email, newUser.id);
-      successResponseData(
+    if (existingUser) {
+      return errorResponseData(
         res,
-        {
-          id: newUser.id,
-          username: newUser.username,
-          email: newUser.email,
-          phone: newUser.phone,
-          is_verified: newUser.is_verified,
-          wallet_balance: newUser.wallet_balance,
-          createdAt: newUser.createdAt,
-          updatedAt: newUser.updatedAt,
-        },
-        RESPONSE_CODE.SUCCESS,
-        successMessages.USER_CREATE_SUCCESS
+        RESPONSE_CODE.BAD_REQUEST,
+        "User already exists"
       );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await createUser({
+      username,
+      email,
+      phone,
+      password: hashedPassword,
     });
+    await sendOTPEmail(newUser.email, newUser.id);
+    successResponseData(
+      res,
+      {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        phone: newUser.phone,
+        is_verified: newUser.is_verified,
+        wallet_balance: newUser.wallet_balance,
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt,
+      },
+      RESPONSE_CODE.SUCCESS,
+      successMessages.USER_CREATE_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,
@@ -106,65 +92,56 @@ const signIn = async (req, res) => {
 
   try {
     const UserModel = Models.User;
-    signInValidation(req, res, async (isValidate) => {
-      if (!isValidate)
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.VALIDATION_ERROR
-        );
+    const { email, password } = req.body;
 
-      const { email, password } = req.body;
-
-      const user = await UserModel.findOne({
-        where: { email },
-        include: [{ model: Models.Address, as: "address" }],
-      });
-
-      if (!user)
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.NOT_FOUND,
-          errorMessages.USER_NOT_FOUND
-        );
-
-      if (!user.is_verified) {
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.UNAUTHORIZED,
-          errorMessages.USER_NOT_VERIFIED
-        );
-      }
-
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) {
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.FORBIDDEN,
-          errorMessages.ENTER_VALID_PASSWORD
-        );
-      }
-
-      const token = generateToken(user.id);
-      const address = await user.getAddress();
-      return successResponseData(
-        res,
-        {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          phone: user.phone,
-          is_verified: user.is_verified,
-          wallet_balance: user.wallet_balance,
-          addresses: address,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-          token: token,
-        },
-        RESPONSE_CODE.SUCCESS,
-        successMessages.SIGNIN_SUCCESS
-      );
+    const user = await UserModel.findOne({
+      where: { email },
+      include: [{ model: Models.Address, as: "address" }],
     });
+
+    if (!user)
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.NOT_FOUND,
+        errorMessages.USER_NOT_FOUND
+      );
+
+    if (!user.is_verified) {
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.UNAUTHORIZED,
+        errorMessages.USER_NOT_VERIFIED
+      );
+    }
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.FORBIDDEN,
+        errorMessages.ENTER_VALID_PASSWORD
+      );
+    }
+
+    const token = generateToken(user.id);
+    const address = await user.getAddress();
+    return successResponseData(
+      res,
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        is_verified: user.is_verified,
+        wallet_balance: user.wallet_balance,
+        addresses: address,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        token: token,
+      },
+      RESPONSE_CODE.SUCCESS,
+      successMessages.SIGNIN_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,
@@ -275,7 +252,7 @@ const verifyOTP = async (req, res) => {
  * This will take the email as parameters.
  */
 
-const forgetPassword = (req, res) => {
+const forgetPassword = async (req, res) => {
   /**
    * Steps for forget password.
    * 1. Validate the request body.
@@ -286,31 +263,22 @@ const forgetPassword = (req, res) => {
    * 6. Test the endpoint
    */
   try {
-    return emailValidation(req, res, async (isValid) => {
-      if (!isValid)
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.VALIDATION_ERROR
-        );
+    const { email } = req.body;
 
-      const { email } = req.body;
-
-      const user = await checkIfUserExists(email);
-      if (!user)
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.USER_NOT_FOUND
-        );
-      await sendOTPEmail(user.email, user.id, true);
-      successResponseData(
+    const user = await checkIfUserExists(email);
+    if (!user)
+      return errorResponseWithoutData(
         res,
-        {},
-        RESPONSE_CODE.SUCCESS,
-        successMessages.FORGET_PASSWORD_SUCCESS
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.USER_NOT_FOUND
       );
-    });
+    await sendOTPEmail(user.email, user.id, true);
+    successResponseData(
+      res,
+      {},
+      RESPONSE_CODE.SUCCESS,
+      successMessages.FORGET_PASSWORD_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,

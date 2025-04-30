@@ -104,7 +104,7 @@ const addOrderService = async (user_id, wallet_balance) => {
     if (error instanceof ApiError) throw error;
     throw new ApiError(
       RESPONSE_CODE.INTERNAL_SERVER,
-      errorMessages.INTERNAL_SERVER_ERROR
+      error
     );
   }
 };
@@ -145,7 +145,7 @@ const getOrderListByUserService = async (user_id) => {
     if (error instanceof ApiError) throw error;
     throw new ApiError(
       RESPONSE_CODE.INTERNAL_SERVER,
-      errorMessages.INTERNAL_SERVER_ERROR
+      error
     );
   }
 };
@@ -186,7 +186,7 @@ const getOrderbyIdService = async (order_id) => {
     if (error instanceof ApiError) throw error;
     ApiError(
       RESPONSE_CODE.INTERNAL_SERVER,
-      errorMessages.INTERNAL_SERVER_ERROR
+      error
     );
   }
 };
@@ -220,7 +220,7 @@ const updateOrderStatusService = async (id, status) => {
     await model.update({ status }, { where: { id } });
     return { message: successMessages.UPDATE_STATUS_SUCCESS };
   } catch (error) {
-    throw new ApiError(RESPONSE_CODE.INTERNAL_SERVER, errorMessages.INTERNAL_SERVER_ERROR);
+    throw new ApiError(RESPONSE_CODE.INTERNAL_SERVER, error);
   }
 };
 

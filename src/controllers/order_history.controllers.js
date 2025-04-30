@@ -26,13 +26,9 @@ const getOrderList = async (req, res, next) => {
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { id, status } = req.body;
-    return updateCartValidation(req, res, async (isValid) => {
-      if (!isValid)
-        errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Validation failed");
-
+    
       const response = await updateOrderStatusService(id, status);
       res.send(response);
-    });
   } catch (error) {
     next(error);
   }

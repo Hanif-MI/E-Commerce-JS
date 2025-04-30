@@ -1,10 +1,5 @@
 import Models from "../models/index.js";
 import {
-  addressValidation,
-  makeAddressDefaultValidation,
-  updateAddressValidation,
-} from "../validation/address.validation.js";
-import {
   errorResponseData,
   errorResponseWithoutData,
   successResponseData,
@@ -14,7 +9,7 @@ import { RESPONSE_CODE } from "../utility/constant.js";
 import { successMessages, errorMessages } from "../utility/messages.js";
 import { checkIfUserExists } from "../services/auth.service.js";
 
-const createAddress = (req, res) => {
+const createAddress = async (req, res) => {
   /**
    * Steps to insert address in Database.
    * 1. Validate request body.
@@ -26,46 +21,38 @@ const createAddress = (req, res) => {
    */
 
   try {
-    return addressValidation(req, res, async (isValid) => {
-      if (!isValid)
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.VALIDATION_ERROR
-        );
-      const { full_address } = req.body;
-      const user_id = req.user.id;
-      const isUserExists = await checkIfUserExists(req.user.email);
-      if (!isUserExists) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.USER_NOT_FOUND
-        );
-      }
-
-      const model = Models.Address;
-
-      const addressExists = await model.findOne({ where: { full_address } });
-      if (addressExists) {
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.ADDRESS_EXISTS
-        );
-      }
-
-      const address = await model.create({
-        full_address,
-        user_id,
-      });
-      successResponseData(
+    const { full_address } = req.body;
+    const user_id = req.user.id;
+    const isUserExists = await checkIfUserExists(req.user.email);
+    if (!isUserExists) {
+      return errorResponseData(
         res,
-        address,
-        RESPONSE_CODE.SUCCESS,
-        successMessages.ADDRESS_CREATE_SUCCESS
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.USER_NOT_FOUND
       );
+    }
+
+    const model = Models.Address;
+
+    const addressExists = await model.findOne({ where: { full_address } });
+    if (addressExists) {
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.ADDRESS_EXISTS
+      );
+    }
+
+    const address = await model.create({
+      full_address,
+      user_id,
     });
+    successResponseData(
+      res,
+      address,
+      RESPONSE_CODE.SUCCESS,
+      successMessages.ADDRESS_CREATE_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,
@@ -87,15 +74,6 @@ const deleteAddress = async (req, res) => {
    */
   try {
     const { id } = req.body;
-
-    if (!id) {
-      return errorResponseData(
-        res,
-        RESPONSE_CODE.BAD_REQUEST,
-        errorMessages.ADDRESS_VALIDATION
-      );
-    }
-
     const model = Models.Address;
     const address = await model.findOne({ where: { id } });
     if (!address) {
@@ -122,7 +100,7 @@ const deleteAddress = async (req, res) => {
   }
 };
 
-const updateAddress = (req, res) => {
+const updateAddress = async (req, res) => {
   /**
    * Steps to update the address in database.
    * 1. Validate the request body.
@@ -133,59 +111,50 @@ const updateAddress = (req, res) => {
    * 6. Test the endpoint.
    */
   try {
-    return updateAddressValidation(req, res, async (isValid) => {
-      if (!isValid)
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.VALIDATION_ERROR
-        );
-
-      const { id, full_address } = req.body;
-      const user_id = req.user.id;
-      const isUserExists = await checkIfUserExists(req.user.email);
-      if (!isUserExists) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.USER_NOT_FOUND
-        );
-      }
-
-      const model = Models.Address;
-      const address = await model.findOne({ where: { id } });
-      if (!address) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.ADDRESS_NOT_FOUND
-        );
-      }
-
-      const addressExists = await model.findOne({ where: { full_address } });
-      if (addressExists || address === full_address) {
-        return errorResponseWithoutData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.ADDRESS_EXISTS
-        );
-      }
-
-      await model.update(
-        { id, full_address, user_id },
-        {
-          where: {
-            id,
-          },
-        }
-      );
-
-      successResponseWithoutData(
+    const { id, full_address } = req.body;
+    const user_id = req.user.id;
+    const isUserExists = await checkIfUserExists(req.user.email);
+    if (!isUserExists) {
+      return errorResponseData(
         res,
-        RESPONSE_CODE.SUCCESS,
-        successMessages.UPDATE_ADDRESS_SUCCESS
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.USER_NOT_FOUND
       );
-    });
+    }
+
+    const model = Models.Address;
+    const address = await model.findOne({ where: { id } });
+    if (!address) {
+      return errorResponseData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.ADDRESS_NOT_FOUND
+      );
+    }
+
+    const addressExists = await model.findOne({ where: { full_address } });
+    if (addressExists || address === full_address) {
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.ADDRESS_EXISTS
+      );
+    }
+
+    await model.update(
+      { id, full_address, user_id },
+      {
+        where: {
+          id,
+        },
+      }
+    );
+
+    successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      successMessages.UPDATE_ADDRESS_SUCCESS
+    );
   } catch (error) {
     errorResponseData(
       res,
@@ -207,23 +176,7 @@ const getAddressByID = async (req, res) => {
    */
 
   try {
-    const user_id  = req.user.id;
-    if (!user_id) {
-      return errorResponseData(
-        res,
-        RESPONSE_CODE.FORBIDDEN,
-        errorMessages.USER_ID_VALIDATION
-      );
-    }
-
-    const isUserExists = await checkIfUserExists(req.user.email)
-    if (!isUserExists) {
-      return errorResponseData(
-        res,
-        RESPONSE_CODE.BAD_REQUEST,
-        errorMessages.USER_NOT_FOUND
-      );
-    }
+    const user_id = req.user.id;
 
     const model = Models.Address;
     const address = await model.findAll({ where: { user_id } });
@@ -244,7 +197,7 @@ const getAddressByID = async (req, res) => {
   }
 };
 
-const makeAddressDefault = (req, res) => {
+const makeAddressDefault = async (req, res) => {
   /**
    * Steps to make the address default
    * 1. validate the request body.
@@ -257,63 +210,45 @@ const makeAddressDefault = (req, res) => {
    */
 
   try {
-    return makeAddressDefaultValidation(req, res, async (isValid) => {
-      if (!isValid)
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.VALIDATION_ERROR
-        );
-
-      const { id } = req.body;
-      const user_id = req.user.id
-
-      const isUserExists = await checkIfUserExists(req.user.email)
-      if (!isUserExists) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.USER_ID_VALIDATION
-        );
-      }
-
-      const model = Models.Address;
-      const address = await model.findAll({ where: { user_id } });
-      if (!address || address.length === 0) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.ADDRESS_NOT_FOUND
-        );
-      }
-
-      await Promise.all(
-        address.map(async (element) => {
-          if (element.id === id) {
-            return await model.update(
-              { is_primary: true },
-              { where: { id: element.id } }
-            );
-          } else {
-            return await model.update(
-              { is_primary: false },
-              { where: { id: element.id } }
-            );
-          }
-        })
+    const { id } = req.body;
+    const user_id = req.user.id;
+    const model = Models.Address;
+    
+    const address = await model.findAll({ where: { user_id } });
+    if (!address || address.length === 0) {
+      return errorResponseData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.ADDRESS_NOT_FOUND
       );
+    }
 
-      const updatedAddress = await model.findOne({ where: { id } });
-      if (!updatedAddress) {
-        return errorResponseData(
-          res,
-          RESPONSE_CODE.BAD_REQUEST,
-          errorMessages.ADDRESS_NOT_FOUND
-        );
-      }
+    await Promise.all(
+      address.map(async (element) => {
+        if (element.id === id) {
+          return await model.update(
+            { is_primary: true },
+            { where: { id: element.id } }
+          );
+        } else {
+          return await model.update(
+            { is_primary: false },
+            { where: { id: element.id } }
+          );
+        }
+      })
+    );
 
-      successResponseData(res, updatedAddress, RESPONSE_CODE.SUCCESS);
-    });
+    const updatedAddress = await model.findOne({ where: { id } });
+    if (!updatedAddress) {
+      return errorResponseData(
+        res,
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.ADDRESS_NOT_FOUND
+      );
+    }
+
+    successResponseData(res, updatedAddress, RESPONSE_CODE.SUCCESS);
   } catch (error) {
     errorResponseData(
       res,

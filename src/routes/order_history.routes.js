@@ -6,6 +6,8 @@ import {
   getOrderList,
   updateOrderStatus,
 } from "../controllers/order_history.controllers.js";
+import { validate } from "../middleware/validation.middleware.js";
+import { addOrderHistorySchema } from "../validation/order_history.validation.js";
 
 const orderHistoryRoute = express.Router();
 
@@ -16,6 +18,6 @@ orderHistoryRoute.get(
   loadUser,
   getOrderList
 );
-orderHistoryRoute.put("/update-order-status", updateOrderStatus); /// authMiddleware, loadUser,
+orderHistoryRoute.put("/update-order-status", validate(addOrderHistorySchema),updateOrderStatus); /// authMiddleware, loadUser,
 
 export default orderHistoryRoute;
