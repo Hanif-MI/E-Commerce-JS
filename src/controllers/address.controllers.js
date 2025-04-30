@@ -3,7 +3,7 @@ import {
   addressValidation,
   makeAddressDefaultValidation,
   updateAddressValidation,
-} from "../validatons/address.validation.js";
+} from "../validation/address.validation.js";
 import {
   errorResponseData,
   errorResponseWithoutData,

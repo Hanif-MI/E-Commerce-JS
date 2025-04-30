@@ -1,11 +1,17 @@
 import Models from "../models/index.js";
-import { errorResponseData, successResponseData } from "../utility/response.js";
+import {
+  errorResponseData,
+  errorResponseWithoutData,
+  successResponseData,
+  successResponseWithoutData,
+} from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import {
   productValidation,
   updateProductValidation,
-} from "../validatons/product.validation.js";
+} from "../validation/product.validation.js";
 import { errorMessages, successMessages } from "../utility/messages.js";
+import { idValidation } from "../validation/common.validation.js";
 
 /**
  * This function is responsible for the creating product.
@@ -54,7 +60,6 @@ const createProduct = async (req, res) => {
           errorMessages.PRODUCT_EXISTS
         );
       }
-
 
       const product = await model.create({
         name,
@@ -178,4 +183,51 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-export { createProduct, getAllProducts, updateProduct };
+const deleteProduct = (req, res) => {
+  /**
+   * Steps to create the category
+   * 1. validate the request body.
+   * 2. check product is exists.
+   * 3. delete from the database
+   * 4. Send a response
+   * 5. Handle errors
+   * 6. Test the endpoint
+   */
+
+  try {
+    return idValidation(req, res, async (isValid) => {
+      if (!isValid) {
+        return errorResponseWithoutData(
+          res,
+          RESPONSE_CODE.NOT_FOUND,
+          errorMessages.VALIDATION_ERROR
+        );
+      }
+
+      const { id } = req.body;
+      const model = Models.Product;
+      const product = await model.findOne({ where: { id } });
+      if (!product) {
+        return errorResponseData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          errorMessages.PRODUCT_NOT_FOUND
+        );
+      }
+      await model.destroy({ where: { id } });
+      return successResponseWithoutData(
+        res,
+        RESPONSE_CODE.SUCCESS_WITHOUT_RESPONSE,
+        successMessages.CATEGORY_DELETE_SUCCESS
+      );
+    });
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.INTERNAL_SERVER,
+      errorMessages.INTERNAL_SERVER_ERROR
+    );
+  }
+};
+
+export { createProduct, getAllProducts, updateProduct, deleteProduct };

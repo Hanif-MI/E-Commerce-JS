@@ -1,8 +1,14 @@
-import { createCategoryValidation } from "../validatons/category.validation.js";
+import { createCategoryValidation } from "../validation/category.validation.js";
 import Models from "../models/index.js";
-import { errorResponseData, successResponseData } from "../utility/response.js";
+import {
+  errorResponseData,
+  errorResponseWithoutData,
+  successResponseData,
+  successResponseWithoutData,
+} from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import { errorMessages, successMessages } from "../utility/messages.js";
+import { idValidation } from "../validation/common.validation.js";
 
 const createCategory = async (req, res) => {
   /**
@@ -74,4 +80,51 @@ const getAllCategories = async (req, res) => {
   }
 };
 
-export { createCategory, getAllCategories };
+const deleteCategory = async (req, res) => {
+  /**
+   * Steps to create the category
+   * 1. validate the request body.
+   * 2. check if category exists.
+   * 3. delete from the database
+   * 4. Send a response
+   * 5. Handle errors
+   * 6. Test the endpoint
+   */
+
+  try {
+    return idValidation(req, res, async (isValid) => {
+      if (!isValid) {
+        return errorResponseWithoutData(
+          res,
+          RESPONSE_CODE.NOT_FOUND,
+          errorMessages.VALIDATION_ERROR
+        );
+      }
+      const { id } = req.body;
+
+      const model = Models.Category;
+      const category = await model.findOne({ where: { id } });
+      if (!category) {
+        return errorResponseData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          errorMessages.CATEGORY_NOT_FOUND
+        );
+      }
+      await model.destroy({ where: { id } });
+      return successResponseWithoutData(
+        res,
+        RESPONSE_CODE.SUCCESS_WITHOUT_RESPONSE,
+        successMessages.CATEGORY_DELETE_SUCCESS
+      );
+    });
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.INTERNAL_SERVER,
+      errorMessages.INTERNAL_SERVER_ERROR 
+    );
+  }
+};
+
+export { createCategory, getAllCategories, deleteCategory };

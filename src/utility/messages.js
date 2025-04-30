@@ -14,6 +14,7 @@ const successMessages = {
    * Category
    */
   CATEGORY_CREATE_SUCCESS: "Category created successfully",
+  CATEGORY_DELETE_SUCCESS: "Category delete successfully",
 
   /**
    * Product
@@ -60,6 +61,8 @@ const errorMessages = {
    * Category
    */
   CATEGORY_ALREADY_EXISTS: "Category already exists",
+  CATEGORY_ID_NOT_FOUND : "Please enter the category ID.",
+  CATEGORY_NOT_FOUND :"Category not Found.",
 
   /**
    * Product
@@ -67,6 +70,7 @@ const errorMessages = {
   INVALID_CATEGORY: "Please insert the valid category.",
   PRODUCT_NOT_FOUND: "Product not found",
   PRODUCT_EXISTS: "Same product already exists.",
+  PRODUCT_ID_NOT_FOUND : "Please enter the product ID.",
 
   /**
    * Address

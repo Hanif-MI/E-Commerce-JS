@@ -3,7 +3,7 @@ import {
   getOrderListByUserService,
   updateOrderStatusService,
 } from "../services/order_history.service.js";
-import { updateCartValidation } from "../validatons/order.validation.js";
+import { updateCartValidation } from "../validation/order.validation.js";
 
 const addOrder = async (req, res, next) => {
   try {

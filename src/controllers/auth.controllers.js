@@ -2,7 +2,7 @@ import {
   emailValidation,
   signInValidation,
   signUpValidation,
-} from "../validatons/auth.validation.js";
+} from "../validation/auth.validation.js";
 import Models from "../models/index.js";
 import bcrypt from "bcrypt";
 import {
