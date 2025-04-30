@@ -5,6 +5,7 @@ import {
 } from "../utility/response.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
 import Models from "../models/index.js";
+import { errorMessages, successMessages } from "../utility/messages.js";
 
 const addToCart = async (req, res) => {
   /**
@@ -20,12 +21,11 @@ const addToCart = async (req, res) => {
   try {
     const { product_id } = req.body;
     const user = req.user;
-    console.log("product_id", product_id);
     if (!product_id)
       return errorResponseWithoutData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "Product enter the product id"
+        errorMessages.PRODUCT_ID_NOT_FOUND
       );
 
     const productModel = Models.Product;
@@ -35,7 +35,7 @@ const addToCart = async (req, res) => {
       return errorResponseWithoutData(
         res,
         RESPONSE_CODE.FORBIDDEN,
-        "Product not found"
+        errorMessages.PRODUCT_NOT_FOUND
       );
 
     const model = Models.Cart;
@@ -44,7 +44,7 @@ const addToCart = async (req, res) => {
       return errorResponseWithoutData(
         res,
         RESPONSE_CODE.FORBIDDEN,
-        "Product already in cart."
+        errorMessages.PRODUCT_ALREADY_IN_CART
       );
     const newProduct = await model.create({
       product_id,
@@ -55,13 +55,13 @@ const addToCart = async (req, res) => {
       res,
       newProduct,
       RESPONSE_CODE.SUCCESS,
-      "Product add in successfully in your cart"
+      successMessages.ADD_ITEM_IN_CART_SUCCESS
     );
   } catch (error) {
     errorResponseWithoutData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while adding product into cart. " + error
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -83,7 +83,7 @@ const getUserCart = async (req, res) => {
     errorResponseWithoutData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while getting user cart. " + error
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -105,7 +105,7 @@ const removeProductFromCart = async (req, res) => {
       return errorResponseWithoutData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "Please enter valid cart Id"
+        errorMessages.VALID_CART_ID
       );
 
     const model = Models.Cart;
@@ -116,20 +116,20 @@ const removeProductFromCart = async (req, res) => {
       return errorResponseWithoutData(
         res,
         RESPONSE_CODE.FORBIDDEN,
-        "Cart product not found"
+        errorMessages.CART_NOT_FOUND
       );
 
     await model.destroy({ where: { id } });
     return successResponseWithoutData(
       res,
       RESPONSE_CODE.SUCCESS_NEW_RESOURCE,
-      "Product remove from cart!"
+      successMessages.PRODUCT_REMOVE_FROM_CART
     );
   } catch (error) {
     errorResponseWithoutData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while remove product from cart. " + error
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };

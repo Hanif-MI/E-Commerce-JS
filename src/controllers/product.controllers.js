@@ -5,6 +5,7 @@ import {
   productValidation,
   updateProductValidation,
 } from "../validatons/product.validation.js";
+import { errorMessages, successMessages } from "../utility/messages.js";
 
 /**
  * This function is responsible for the creating product.
@@ -23,7 +24,11 @@ const createProduct = async (req, res) => {
     const model = Models.Product;
     return productValidation(req, res, async (isValid) => {
       if (!isValid)
-        errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Validation failed");
+        errorResponseData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          errorMessages.VALIDATION_ERROR
+        );
       const { name, description, price, category_id } = req.body;
 
       const categoryModel = Models.Category;
@@ -34,9 +39,22 @@ const createProduct = async (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Please insert the valid category."
+          errorMessages.INVALID_CATEGORY
         );
       }
+
+      const isProductExists = await model.findOne({
+        where: { name, description, price },
+      });
+
+      if (isProductExists) {
+        return errorResponseData(
+          res,
+          RESPONSE_CODE.FORBIDDEN,
+          errorMessages.PRODUCT_EXISTS
+        );
+      }
+
 
       const product = await model.create({
         name,
@@ -48,14 +66,14 @@ const createProduct = async (req, res) => {
         res,
         product,
         RESPONSE_CODE.SUCCESS,
-        "User created successfully"
+        successMessages.PRODUCT_CREATE_SUCCESS
       );
     });
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while creating category"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -73,7 +91,11 @@ const updateProduct = async (req, res) => {
   try {
     updateProductValidation(req, res, async (isValid) => {
       if (!isValid)
-        errorResponseData(res, RESPONSE_CODE.BAD_REQUEST, "Validation failed");
+        errorResponseData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          errorMessages.VALIDATION_ERROR
+        );
       const { id, name, description, price, category_id } = req.body;
 
       const categoryModel = Models.Category;
@@ -93,7 +115,7 @@ const updateProduct = async (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Product not found"
+          errorMessages.PRODUCT_NOT_FOUND
         );
       }
       const updatedProduct = await product.update(
@@ -109,14 +131,14 @@ const updateProduct = async (req, res) => {
         res,
         updatedProduct,
         RESPONSE_CODE.SUCCESS,
-        "User created successfully"
+        successMessages.PRODUCT_UPDATE_SUCCESS
       );
     });
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      `Error while update product  ${error}`
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -146,13 +168,12 @@ const getAllProducts = async (req, res) => {
       offset: offset,
       limit: limit,
     });
-    console.log("whereCondition", products);
     successResponseData(res, products, RESPONSE_CODE.SUCCESS);
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      `Error getting all products  ${error}`
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };

@@ -1,13 +1,14 @@
 import Models from "../models/index.js";
 import { ApiError } from "../utility/api_error.js";
 import { RESPONSE_CODE } from "../utility/constant.js";
+import { errorMessages, successMessages } from "../utility/messages.js";
 
 /**
  * This function is validate the id.
  */
 const validateId = (id) => {
   if (!id || isNaN(id)) {
-    throw new ApiError(400, "Invalid user ID");
+    throw new ApiError(400, errorMessages.USER_ID_VALIDATION);
   }
   return true;
 };
@@ -35,7 +36,7 @@ const addOrderService = async (user_id, wallet_balance) => {
   });
 
   if (!cart || cart.length === 0) {
-    throw new ApiError(404, "Empty Cart!");
+    throw new ApiError(404, errorMessages.EMPTY_CART);
   }
 
   try {
@@ -54,7 +55,7 @@ const addOrderService = async (user_id, wallet_balance) => {
         product_price: item.product.price,
       };
     });
-    
+
     if (totalAmount > wallet_balance) {
       throw new ApiError(
         RESPONSE_CODE.FORBIDDEN,
@@ -70,7 +71,7 @@ const addOrderService = async (user_id, wallet_balance) => {
         },
         transaction,
       }
-    );  
+    );
 
     await orderItemsModel.bulkCreate(orderItems, { transaction });
     await cartModel.destroy({ where: { user_id }, transaction });
@@ -91,14 +92,20 @@ const addOrderService = async (user_id, wallet_balance) => {
     await transaction.commit();
 
     if (!order) {
-      throw new ApiError(404, "Order not found");
+      throw new ApiError(
+        RESPONSE_CODE.BAD_REQUEST,
+        errorMessages.INTERNAL_SERVER_ERROR
+      );
     }
 
     return order;
   } catch (error) {
     await transaction.rollback();
     if (error instanceof ApiError) throw error;
-    throw new ApiError(500, "Failed to create order : " + error.message);
+    throw new ApiError(
+      RESPONSE_CODE.INTERNAL_SERVER,
+      errorMessages.INTERNAL_SERVER_ERROR
+    );
   }
 };
 
@@ -127,13 +134,19 @@ const getOrderListByUserService = async (user_id) => {
     });
 
     if (orderHistory.length === 0) {
-      throw new ApiError(404, "Order history not found!");
+      throw new ApiError(
+        RESPONSE_CODE.NOT_FOUND,
+        errorMessages.ORDER_HISTORY_NOT_FOUND
+      );
     }
 
     return orderHistory;
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    throw new ApiError(500, "Failed to get order's list : " + error.message);
+    throw new ApiError(
+      RESPONSE_CODE.INTERNAL_SERVER,
+      errorMessages.INTERNAL_SERVER_ERROR
+    );
   }
 };
 
@@ -162,13 +175,19 @@ const getOrderbyIdService = async (order_id) => {
     });
 
     if (!orderHistory) {
-      throw new ApiError(404, "Order history not found!");
+      throw new ApiError(
+        RESPONSE_CODE.NOT_FOUND,
+        errorMessages.ORDER_HISTORY_NOT_FOUND
+      );
     }
 
     return orderHistory;
   } catch (error) {
     if (error instanceof ApiError) throw error;
-    throw new ApiError(500, "Failed to get order : " + error.message);
+    ApiError(
+      RESPONSE_CODE.INTERNAL_SERVER,
+      errorMessages.INTERNAL_SERVER_ERROR
+    );
   }
 };
 
@@ -189,22 +208,19 @@ const updateOrderStatusService = async (id, status) => {
     if (!product)
       throw new ApiError(
         RESPONSE_CODE.BAD_REQUEST,
-        "Card product is not found!"
+        errorMessages.ORDER_HISTORY_NOT_FOUND
       );
 
     if (status === product.status) {
       throw new ApiError(
         RESPONSE_CODE.BAD_REQUEST,
-        "Already have the updated status"
+        errorMessages.ALREADY_UPDATED
       );
     }
     await model.update({ status }, { where: { id } });
-    return { message: "update status successful" };
+    return { message: successMessages.UPDATE_STATUS_SUCCESS };
   } catch (error) {
-    throw new ApiError(
-      RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while update the status : " + error
-    );
+    throw new ApiError(RESPONSE_CODE.INTERNAL_SERVER, errorMessages.INTERNAL_SERVER_ERROR);
   }
 };
 

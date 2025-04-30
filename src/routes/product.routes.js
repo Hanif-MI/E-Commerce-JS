@@ -7,8 +7,8 @@ import {
 
 const productRoutes = express.Router();
 
-productRoutes.use("/create-product", createProduct);
-productRoutes.use("/products", getAllProducts);
-productRoutes.use("/update-product", updateProduct);
+productRoutes.post("/create-product", createProduct);
+productRoutes.get("/products", getAllProducts);
+productRoutes.put("/update-product", updateProduct);
 
 export { productRoutes };

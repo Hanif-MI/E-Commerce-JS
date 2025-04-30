@@ -9,13 +9,13 @@ import {
 
 const orderHistoryRoute = express.Router();
 
-orderHistoryRoute.use("/add-order", authMiddleware, loadUser, addOrder);
-orderHistoryRoute.use(
+orderHistoryRoute.get("/add-order", authMiddleware, loadUser, addOrder);
+orderHistoryRoute.get(
   "/get-order-list",
   authMiddleware,
   loadUser,
   getOrderList
 );
-orderHistoryRoute.use("/update-order-status", updateOrderStatus); /// authMiddleware, loadUser,
+orderHistoryRoute.put("/update-order-status", updateOrderStatus); /// authMiddleware, loadUser,
 
 export default orderHistoryRoute;

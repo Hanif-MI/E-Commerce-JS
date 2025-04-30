@@ -1,12 +1,20 @@
 import express from "express";
-import { createAddress, deleteAddress, getAddressByID, makeAddressDefault, updateAddress } from "../controllers/address.controllers.js";
+import {
+  createAddress,
+  deleteAddress,
+  getAddressByID,
+  makeAddressDefault,
+  updateAddress,
+} from "../controllers/address.controllers.js";
+import authMiddleware from "../middleware/auth.middleware.js";
+import { loadUser } from "../middleware/user.middleware.js";
 
 const addressRoutes = express.Router();
 
-addressRoutes.use("/create-address", createAddress);
-addressRoutes.use("/update-address", updateAddress);
-addressRoutes.use("/get-address-by-id", getAddressByID);
-addressRoutes.use("/make-address-default-validation", makeAddressDefault);
-addressRoutes.use("/delete-address", deleteAddress);
+addressRoutes.post("/create-address", authMiddleware, loadUser, createAddress);
+addressRoutes.put("/update-address", authMiddleware, loadUser, updateAddress);
+addressRoutes.get("/get-address-by-user", authMiddleware, loadUser, getAddressByID);
+addressRoutes.put("/make-address-default-validation", authMiddleware, loadUser, makeAddressDefault);
+addressRoutes.delete("/delete-address", authMiddleware, deleteAddress);
 
 export { addressRoutes };

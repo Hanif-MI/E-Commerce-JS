@@ -6,11 +6,13 @@ import {
 } from "../validatons/address.validation.js";
 import {
   errorResponseData,
+  errorResponseWithoutData,
   successResponseData,
   successResponseWithoutData,
 } from "../utility/response.js";
-import { where } from "sequelize";
 import { RESPONSE_CODE } from "../utility/constant.js";
+import { successMessages, errorMessages } from "../utility/messages.js";
+import { checkIfUserExists } from "../services/auth.service.js";
 
 const createAddress = (req, res) => {
   /**
@@ -29,23 +31,30 @@ const createAddress = (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Validation failed"
+          errorMessages.VALIDATION_ERROR
         );
-      const { full_address, user_id } = req.body;
-      console.log(full_address, user_id);
-      const userModel = Models.User;
-      const isUserExists = await userModel.findOne({
-        where: { id: user_id },
-      });
+      const { full_address } = req.body;
+      const user_id = req.user.id;
+      const isUserExists = await checkIfUserExists(req.user.email);
       if (!isUserExists) {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Please insert the valid user id."
+          errorMessages.USER_NOT_FOUND
         );
       }
 
       const model = Models.Address;
+
+      const addressExists = await model.findOne({ where: { full_address } });
+      if (addressExists) {
+        return errorResponseWithoutData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          errorMessages.ADDRESS_EXISTS
+        );
+      }
+
       const address = await model.create({
         full_address,
         user_id,
@@ -54,14 +63,14 @@ const createAddress = (req, res) => {
         res,
         address,
         RESPONSE_CODE.SUCCESS,
-        "User created successfully"
+        successMessages.ADDRESS_CREATE_SUCCESS
       );
     });
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while creating category"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -83,7 +92,7 @@ const deleteAddress = async (req, res) => {
       return errorResponseData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "Please enter the id."
+        errorMessages.ADDRESS_VALIDATION
       );
     }
 
@@ -93,7 +102,7 @@ const deleteAddress = async (req, res) => {
       return errorResponseData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "address not found"
+        errorMessages.ADDRESS_NOT_FOUND
       );
     }
 
@@ -102,13 +111,13 @@ const deleteAddress = async (req, res) => {
     successResponseWithoutData(
       res,
       RESPONSE_CODE.SUCCESS,
-      "delete address successfully"
+      successMessages.DELETE_ADDRESS_SUCCESS
     );
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while deleting address"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -129,20 +138,17 @@ const updateAddress = (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Validation failed"
+          errorMessages.VALIDATION_ERROR
         );
 
-      const { id, full_address, user_id } = req.body;
-
-      const userModel = Models.User;
-      const isUserExists = await userModel.findOne({
-        where: { id: user_id },
-      });
+      const { id, full_address } = req.body;
+      const user_id = req.user.id;
+      const isUserExists = await checkIfUserExists(req.user.email);
       if (!isUserExists) {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Please insert the valid user id."
+          errorMessages.USER_NOT_FOUND
         );
       }
 
@@ -152,11 +158,20 @@ const updateAddress = (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "address not found"
+          errorMessages.ADDRESS_NOT_FOUND
         );
       }
 
-      const updatedAddress = await model.update(
+      const addressExists = await model.findOne({ where: { full_address } });
+      if (addressExists || address === full_address) {
+        return errorResponseWithoutData(
+          res,
+          RESPONSE_CODE.BAD_REQUEST,
+          errorMessages.ADDRESS_EXISTS
+        );
+      }
+
+      await model.update(
         { id, full_address, user_id },
         {
           where: {
@@ -165,18 +180,17 @@ const updateAddress = (req, res) => {
         }
       );
 
-      successResponseData(
+      successResponseWithoutData(
         res,
-        updatedAddress,
         RESPONSE_CODE.SUCCESS,
-        "User created successfully"
+        successMessages.UPDATE_ADDRESS_SUCCESS
       );
     });
   } catch (error) {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while creating category"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -193,23 +207,21 @@ const getAddressByID = async (req, res) => {
    */
 
   try {
-    const { user_id } = req.body;
+    const user_id  = req.user.id;
     if (!user_id) {
       return errorResponseData(
         res,
         RESPONSE_CODE.FORBIDDEN,
-        "user id is mandatory filed."
+        errorMessages.USER_ID_VALIDATION
       );
     }
-    const userModel = Models.User;
-    const isUserExists = await userModel.findOne({
-      where: { id: user_id },
-    });
+
+    const isUserExists = await checkIfUserExists(req.user.email)
     if (!isUserExists) {
       return errorResponseData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "Please insert the valid user id."
+        errorMessages.USER_NOT_FOUND
       );
     }
 
@@ -219,7 +231,7 @@ const getAddressByID = async (req, res) => {
       return errorResponseData(
         res,
         RESPONSE_CODE.BAD_REQUEST,
-        "address not found"
+        errorMessages.ADDRESS_NOT_FOUND
       );
     }
     successResponseData(res, address, RESPONSE_CODE.SUCCESS);
@@ -227,7 +239,7 @@ const getAddressByID = async (req, res) => {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while getting the address"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };
@@ -250,20 +262,18 @@ const makeAddressDefault = (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Validation failed"
+          errorMessages.VALIDATION_ERROR
         );
 
-      const { id, user_id } = req.body;
+      const { id } = req.body;
+      const user_id = req.user.id
 
-      const userModel = Models.User;
-      const isUserExists = await userModel.findOne({
-        where: { id: user_id },
-      });
+      const isUserExists = await checkIfUserExists(req.user.email)
       if (!isUserExists) {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Please insert the valid user id."
+          errorMessages.USER_ID_VALIDATION
         );
       }
 
@@ -273,7 +283,7 @@ const makeAddressDefault = (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Address not found"
+          errorMessages.ADDRESS_NOT_FOUND
         );
       }
 
@@ -298,7 +308,7 @@ const makeAddressDefault = (req, res) => {
         return errorResponseData(
           res,
           RESPONSE_CODE.BAD_REQUEST,
-          "Failed to update the default address"
+          errorMessages.ADDRESS_NOT_FOUND
         );
       }
 
@@ -308,7 +318,7 @@ const makeAddressDefault = (req, res) => {
     errorResponseData(
       res,
       RESPONSE_CODE.INTERNAL_SERVER,
-      "Error while creating category"
+      errorMessages.INTERNAL_SERVER_ERROR
     );
   }
 };

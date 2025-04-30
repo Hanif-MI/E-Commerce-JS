@@ -5,7 +5,6 @@ import { RESPONSE_CODE } from "../utility/constant.js";
 const addressValidation = (req, res, callback) => {
   const schema = Joi.object({
     full_address: Joi.string().min(10).max(200).required(),
-    user_id: Joi.number().required(),
   });
 
   const { error } = schema.validate(req.body);
@@ -17,7 +16,6 @@ const updateAddressValidation = (req, res, callback) => {
   const schema = Joi.object({
     id: Joi.required(),
     full_address: Joi.string().min(10).max(200).required(),
-    user_id: Joi.number().required(),
   });
 
   const { error } = schema.validate(req.body);
@@ -27,8 +25,7 @@ const updateAddressValidation = (req, res, callback) => {
 
 const makeAddressDefaultValidation = (req, res, callback) => {
   const schema = Joi.object({
-    id: Joi.required(),
-    user_id: Joi.number().required(),
+    id: Joi.required()
   });
 
   const { error } = schema.validate(req.body);
