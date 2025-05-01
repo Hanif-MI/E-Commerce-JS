@@ -7,6 +7,11 @@ const defineProductModel = (sequelize, DataTypes) => {
         foreignKey: "product_id",
         as: "cart",
       });
+
+      Product.hasMany(models.product_media, {
+        foreignKey: "productId",
+        as: "product_media",
+      });
     }
   }
 

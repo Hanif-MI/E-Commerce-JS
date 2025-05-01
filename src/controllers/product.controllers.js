@@ -1,6 +1,7 @@
 import Models from "../models/index.js";
 import {
   errorResponseData,
+  errorResponseWithoutData,
   successResponseData,
   successResponseWithoutData,
 } from "../utility/response.js";
@@ -149,6 +150,13 @@ const getAllProducts = async (req, res) => {
       where: whereCondition,
       offset: offset,
       limit: limit,
+      include: [
+        {
+          model: Models.product_media,
+          as: "product_media",
+          attributes: ["fileName", "fileType", "fileSize"],
+        },
+      ],
     });
     successResponseData(res, products, RESPONSE_CODE.SUCCESS);
   } catch (error) {
@@ -197,4 +205,115 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-export { createProduct, getAllProducts, updateProduct, deleteProduct };
+const uploadMediaProduct = async (req, res) => {
+  if (req.file && req.file.filename) {
+    const model = Models.product_media;
+    await model.create({
+      fileName: req.file.filename,
+      fileType: req.file.mimetype,
+      fileSize: req.file.size,
+      productId: req.body.productId,
+    });
+    return successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS_WITHOUT_RESPONSE,
+      successMessages.PRODUCT_IMAGE_UPLOAD_SUCCESS
+    );
+  } else {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.BAD_REQUEST,
+      errorMessages.PRODUCT_MEDIA_UPLOADING_FAILED
+    );
+  }
+};
+
+const deleteProductMedia = async (req, res) => {
+  try {
+    const id = req.body.id;
+    const model = Models.product_media;
+    const mediaExists = await model.findOne({ where: { id } });
+    if (!mediaExists) {
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.NOT_FOUND,
+        errorMessages.PRODUCT__MEDIA_NOT_FOUND
+      );
+    }
+    await model.destroy({ where: { id } });
+    return successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      successMessages.PRODUCT_IMAGE_DELETE_SUCCESS
+    );
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.BAD_REQUEST,
+      errorMessages.INTERNAL_SERVER_ERROR
+    );
+  }
+};
+
+const updateProductMedia = async (req, res) => {
+  try {
+    const { id, file } = req.body;
+    const model = Models.product_media;
+    const mediaExists = await model.findOne({ where: { id } });
+    if (!mediaExists) {
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.NOT_FOUND,
+        errorMessages.PRODUCT__MEDIA_NOT_FOUND
+      );
+    }
+    await model.update({ file }, { where: { id } });
+    return successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      successMessages.PRODUCT_IMAGE_UPDATE_SUCCESS
+    );
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.BAD_REQUEST,
+      errorMessages.INTERNAL_SERVER_ERROR
+    );
+  }
+};
+
+const getProductMedia = async (req, res) => {
+  try {
+    const id = req.body.id;
+    const model = Models.product_media;
+    const mediaExists = await model.findAndCountAll({ where: { id } },of)
+    if (!mediaExists) {
+      return errorResponseWithoutData(
+        res,
+        RESPONSE_CODE.NOT_FOUND,
+        errorMessages.PRODUCT__MEDIA_NOT_FOUND
+      );
+    }
+    return successResponseWithoutData(
+      res,
+      RESPONSE_CODE.SUCCESS,
+      successMessages.PRODUCT_IMAGE_UPDATE_SUCCESS
+    );
+  } catch (error) {
+    errorResponseData(
+      res,
+      RESPONSE_CODE.BAD_REQUEST,
+      errorMessages.INTERNAL_SERVER_ERROR
+    );
+  }
+};
+
+export {
+  createProduct,
+  getAllProducts,
+  updateProduct,
+  deleteProduct,
+  uploadMediaProduct,
+  updateProductMedia,
+  deleteProductMedia,
+};

@@ -15,4 +15,13 @@ const updateProductSchema = Joi.object({
   category_id: Joi.number(),
 });
 
-export { createProductSchema, updateProductSchema };
+const productIdSchema = Joi.object({
+  productId: Joi.number().required(),
+});
+
+const getProductSchema = Joi.object({
+  offset : Joi.number().default(1),
+  limit : Joi.number().default(1),
+})
+
+export { createProductSchema, updateProductSchema,productIdSchema,getProductSchema };

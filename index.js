@@ -12,6 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api",route)
 app.use(errorHandler)
+app.use(express.static("public/temp"));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

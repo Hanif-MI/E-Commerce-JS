@@ -12,4 +12,18 @@ const RESPONSE_CODE = {
   TOKEN_INAVLID: 498,
 };
 
-export { RESPONSE_CODE };
+
+// Validate file type
+const allowedMimeTypes = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/tiff",
+  "image/bmp",
+];
+
+
+export { RESPONSE_CODE, allowedMimeTypes };

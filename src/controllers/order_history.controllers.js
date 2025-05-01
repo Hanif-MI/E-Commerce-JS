@@ -3,7 +3,6 @@ import {
   getOrderListByUserService,
   updateOrderStatusService,
 } from "../services/order_history.service.js";
-import { updateCartValidation } from "../validation/order.validation.js";
 
 const addOrder = async (req, res, next) => {
   try {
@@ -26,7 +25,6 @@ const getOrderList = async (req, res, next) => {
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { id, status } = req.body;
-    
       const response = await updateOrderStatusService(id, status);
       res.send(response);
   } catch (error) {

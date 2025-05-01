@@ -21,6 +21,9 @@ const successMessages = {
    */
   PRODUCT_CREATE_SUCCESS: "Product created successfully",
   PRODUCT_UPDATE_SUCCESS: "Product update successfully",
+  PRODUCT_IMAGE_UPLOAD_SUCCESS: "Images upload successful",
+  PRODUCT_IMAGE_DELETE_SUCCESS: "Delete images upload successful",
+  PRODUCT_IMAGE_UPDATE_SUCCESS: "Images update upload successful",
 
   /**
    * Address
@@ -38,7 +41,7 @@ const successMessages = {
   /**
    * Order
    */
-  UPDATE_STATUS_SUCCESS : "update status successful",
+  UPDATE_STATUS_SUCCESS: "update status successful",
 };
 
 const errorMessages = {
@@ -61,16 +64,18 @@ const errorMessages = {
    * Category
    */
   CATEGORY_ALREADY_EXISTS: "Category already exists",
-  CATEGORY_ID_NOT_FOUND : "Please enter the category ID.",
-  CATEGORY_NOT_FOUND :"Category not Found.",
+  CATEGORY_ID_NOT_FOUND: "Please enter the category ID.",
+  CATEGORY_NOT_FOUND: "Category not Found.",
 
   /**
    * Product
    */
   INVALID_CATEGORY: "Please insert the valid category.",
   PRODUCT_NOT_FOUND: "Product not found",
+  PRODUCT__MEDIA_NOT_FOUND: "Product media not found",
   PRODUCT_EXISTS: "Same product already exists.",
-  PRODUCT_ID_NOT_FOUND : "Please enter the product ID.",
+  PRODUCT_ID_NOT_FOUND: "Please enter the product ID.",
+  PRODUCT_MEDIA_UPLOADING_FAILED: "File upload failed or file not found",
 
   /**
    * Address
@@ -87,13 +92,13 @@ const errorMessages = {
   PRODUCT_ALREADY_IN_CART: "Product already in cart.",
   VALID_CART_ID: "Please enter valid cart Id",
   CART_NOT_FOUND: "Cart product not found",
-  EMPTY_CART : "Empty Cart!",
+  EMPTY_CART: "Empty Cart!",
 
   /**
    * Order
    */
-  ORDER_HISTORY_NOT_FOUND : "Order history not found!",
-  ALREADY_UPDATED : "Already have the updated status!",
+  ORDER_HISTORY_NOT_FOUND: "Order history not found!",
+  ALREADY_UPDATED: "Already have the updated status!",
 
   /**
    * Common
